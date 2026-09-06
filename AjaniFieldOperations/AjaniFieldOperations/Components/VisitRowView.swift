@@ -7,13 +7,18 @@ struct VisitRowView: View {
     var body: some View {
         NavigationLink(value: visit.id) {
             VStack(alignment: .leading, spacing: AjaniTheme.Spacing.s) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(VisitFormatting.window(from: visit.scheduledStart, to: visit.scheduledEnd))
-                        .font(.subheadline.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(AjaniTheme.Palette.textSecondary)
-                    Spacer(minLength: AjaniTheme.Spacing.s)
-                    StatusBadge(status: visit.status)
+                // Side by side while both fit; stacked once the time and badge
+                // can no longer share a line.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline) {
+                        scheduleWindow
+                        Spacer(minLength: AjaniTheme.Spacing.s)
+                        StatusBadge(status: visit.status)
+                    }
+                    VStack(alignment: .leading, spacing: AjaniTheme.Spacing.s) {
+                        scheduleWindow
+                        StatusBadge(status: visit.status)
+                    }
                 }
 
                 Text(visit.clientName)
@@ -43,6 +48,13 @@ struct VisitRowView: View {
         .accessibilityValue(visit.status.title)
         .accessibilityHint("Opens the visit details")
         .accessibilityAddTraits(.isButton)
+    }
+
+    private var scheduleWindow: some View {
+        Text(VisitFormatting.window(from: visit.scheduledStart, to: visit.scheduledEnd))
+            .font(.subheadline.weight(.semibold))
+            .monospacedDigit()
+            .foregroundStyle(AjaniTheme.Palette.textSecondary)
     }
 
     private var accessibilityLabel: String {

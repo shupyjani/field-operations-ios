@@ -22,6 +22,10 @@ struct StatusBadge: View {
         }
         .font(.footnote.weight(.semibold))
         .labelStyle(.titleAndIcon)
+        .lineLimit(1)
+        // The badge widens to fit its word rather than breaking "En route"
+        // across two lines inside the capsule at larger text sizes.
+        .fixedSize(horizontal: true, vertical: false)
         .foregroundStyle(status.tint)
         .padding(.horizontal, AjaniTheme.Spacing.m)
         .padding(.vertical, AjaniTheme.Spacing.xs + 2)
