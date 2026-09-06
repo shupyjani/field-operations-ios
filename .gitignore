@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific state (machine specific, never shared)
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+*.xcscmblueprint
+*.xccheckout
+
+# Build products and derived data
+DerivedData/
+build/
+*.o
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods / Carthage (unused today, ignored so local experiments stay out of Git)
+Pods/
+Carthage/Build/
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Shared project and scheme files are deliberately tracked:
+#   *.xcodeproj/project.pbxproj
+#   *.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+#   *.xcodeproj/xcshareddata/
