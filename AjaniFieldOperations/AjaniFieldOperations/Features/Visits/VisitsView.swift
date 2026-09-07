@@ -12,34 +12,40 @@ struct VisitsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
-                    if results.isEmpty {
-                        EmptyStateView(
-                            symbolName: "magnifyingglass",
-                            title: "No matching visits",
-                            message: emptyStateMessage
-                        )
-                        .ajaniCard()
-                        .accessibilityIdentifier(AccessibilityID.visitsEmptyState)
-                    } else {
-                        Text(resultSummary)
-                            .font(.footnote)
-                            .foregroundStyle(AjaniTheme.Palette.textSecondary)
-                            .padding(.horizontal, AjaniTheme.Spacing.xs)
+                // The filter bar is a pinned section header rather than a top
+                // safe-area inset: an inset there sits in the navigation bar's
+                // large-title area and suppresses the title.
+                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    Section {
+                        LazyVStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
+                            if results.isEmpty {
+                                EmptyStateView(
+                                    symbolName: "magnifyingglass",
+                                    title: "No matching visits",
+                                    message: emptyStateMessage
+                                )
+                                .ajaniCard()
+                                .accessibilityIdentifier(AccessibilityID.visitsEmptyState)
+                            } else {
+                                Text(resultSummary)
+                                    .font(.footnote)
+                                    .foregroundStyle(AjaniTheme.Palette.textSecondary)
+                                    .padding(.horizontal, AjaniTheme.Spacing.xs)
 
-                        ForEach(results) { visit in
-                            VisitRowView(visit: visit)
+                                ForEach(results) { visit in
+                                    VisitRowView(visit: visit)
+                                }
+                            }
                         }
+                        .padding(AjaniTheme.Spacing.l)
+                    } header: {
+                        filterBar
                     }
                 }
-                .padding(AjaniTheme.Spacing.l)
             }
             .background(AjaniTheme.Palette.canvas)
             .scrollBounceBehavior(.basedOnSize)
             .scrollDismissesKeyboard(.immediately)
-            .safeAreaInset(edge: .top, spacing: 0) {
-                filterBar
-            }
             .navigationTitle("Visits")
             .searchable(
                 text: $searchText,

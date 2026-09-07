@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 @MainActor
@@ -31,6 +32,44 @@ final class FieldOperationsUITests: XCTestCase {
     private func openVisits(in app: XCUIApplication) {
         app.tabBars.buttons["Visits"].tap()
         XCTAssertTrue(app.buttons[ID.visitRow("AV-1042")].waitForExistence(timeout: timeout))
+    }
+
+    func testVisitsShowsItsNavigationTitle() throws {
+        let app = launchApp()
+        openVisits(in: app)
+
+        // Scoped to the navigation bar so this can never be satisfied by the
+        // "Visits" tab button, which lives in the tab bar.
+        let navigationBar = app.navigationBars["Visits"]
+        XCTAssertTrue(navigationBar.waitForExistence(timeout: timeout))
+
+        let title = navigationBar.staticTexts["Visits"]
+        XCTAssertTrue(title.waitForExistence(timeout: timeout), "The Visits screen should show a navigation title")
+        XCTAssertFalse(title.frame.isEmpty, "The Visits title should occupy layout space")
+
+        // The title sits above the search field, as on Today and More.
+        let searchField = navigationBar.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: timeout))
+        XCTAssertLessThan(title.frame.maxY, searchField.frame.minY)
+
+        // Existence is not enough: when this bug was live the title element was
+        // present, correctly framed and hittable, yet nothing was drawn. Only the
+        // rendered pixels distinguish the two, in either colour scheme.
+        let titleRegion = title.frame.offsetBy(
+            dx: -navigationBar.frame.minX,
+            dy: -navigationBar.frame.minY
+        )
+        XCTAssertGreaterThan(
+            contrast(in: navigationBar.screenshot(), region: titleRegion),
+            60,
+            "The Visits title occupies layout space but is not drawn"
+        )
+
+        // Still correct after leaving and returning to the tab.
+        app.tabBars.buttons["Today"].tap()
+        XCTAssertTrue(app.buttons[ID.upNextVisit].waitForExistence(timeout: timeout))
+        openVisits(in: app)
+        XCTAssertTrue(app.navigationBars["Visits"].staticTexts["Visits"].waitForExistence(timeout: timeout))
     }
 
     func testAppLaunchesOnTodayWithTheShiftInView() throws {
@@ -169,6 +208,42 @@ final class FieldOperationsUITests: XCTestCase {
         }
         XCTAssertTrue(waitFor(NSPredicate(format: "isHittable == true"), on: element))
         element.tap()
+    }
+
+    /// Difference between the lightest and darkest pixel in a region, 0–255.
+    /// A region containing drawn text has a wide spread; flat background is near zero.
+    private func contrast(in screenshot: XCUIScreenshot, region: CGRect) -> Int {
+        let image = screenshot.image
+        let scale = image.scale
+        let scaled = CGRect(
+            x: region.origin.x * scale,
+            y: region.origin.y * scale,
+            width: region.width * scale,
+            height: region.height * scale
+        )
+        guard let cropped = image.cgImage?.cropping(to: scaled),
+              cropped.width > 0, cropped.height > 0 else {
+            return 0
+        }
+
+        let width = cropped.width
+        let height = cropped.height
+        var pixels = [UInt8](repeating: 0, count: width * height)
+        guard let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width,
+            space: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGImageAlphaInfo.none.rawValue
+        ) else {
+            return 0
+        }
+        context.draw(cropped, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        guard let darkest = pixels.min(), let lightest = pixels.max() else { return 0 }
+        return Int(lightest) - Int(darkest)
     }
 
     private func waitForLabel(_ label: String, on element: XCUIElement) -> Bool {
