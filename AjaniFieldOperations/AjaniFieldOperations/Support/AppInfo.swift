@@ -1,7 +1,9 @@
 import Foundation
 
 enum AppInfo {
-    static let displayName = "Ajani Field Operations"
+    /// The name the app presents to its user. Kept in step with the bundle's
+    /// display name, which is what the Home Screen shows.
+    static let displayName = "Ajani Mobile"
 
     static var version: String {
         string(for: "CFBundleShortVersionString")
