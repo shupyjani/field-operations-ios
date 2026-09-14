@@ -5,6 +5,12 @@ nonisolated enum VisitStatus: String, CaseIterable, Hashable, Sendable {
     case enRoute
     case arrived
     case completed
+    case cancelled
+
+    /// The forward sequence a visit travels. Cancelled sits outside it on purpose:
+    /// it is not a further step but an exit, so every rule built on this order
+    /// refuses a cancelled visit without having to name it.
+    static let sequence: [VisitStatus] = [.planned, .enRoute, .arrived, .completed]
 
     var title: String {
         switch self {
@@ -12,6 +18,7 @@ nonisolated enum VisitStatus: String, CaseIterable, Hashable, Sendable {
         case .enRoute: "En route"
         case .arrived: "Arrived"
         case .completed: "Completed"
+        case .cancelled: "Cancelled"
         }
     }
 
@@ -21,6 +28,7 @@ nonisolated enum VisitStatus: String, CaseIterable, Hashable, Sendable {
         case .enRoute: "figure.walk"
         case .arrived: "mappin.and.ellipse"
         case .completed: "checkmark.circle.fill"
+        case .cancelled: "xmark.circle.fill"
         }
     }
 
@@ -28,14 +36,23 @@ nonisolated enum VisitStatus: String, CaseIterable, Hashable, Sendable {
         self == .enRoute || self == .arrived
     }
 
-    /// The only status this visit may move to next. `nil` once the visit is finished.
+    /// Nothing further will happen at this address.
+    var isResolved: Bool {
+        self == .completed || self == .cancelled
+    }
+
+    /// Position in the forward sequence, or `nil` for a status outside it.
+    var sequenceStep: Int? {
+        Self.sequence.firstIndex(of: self).map { $0 + 1 }
+    }
+
+    /// The only status this visit may move to next. `nil` once it has left the sequence.
     var successor: VisitStatus? {
-        switch self {
-        case .planned: .enRoute
-        case .enRoute: .arrived
-        case .arrived: .completed
-        case .completed: nil
+        guard let index = Self.sequence.firstIndex(of: self),
+              index < Self.sequence.count - 1 else {
+            return nil
         }
+        return Self.sequence[index + 1]
     }
 
     /// Wording for the button that performs the successor transition.
@@ -44,7 +61,7 @@ nonisolated enum VisitStatus: String, CaseIterable, Hashable, Sendable {
         case .planned: "Start travelling"
         case .enRoute: "Mark as arrived"
         case .arrived: "Complete visit"
-        case .completed: nil
+        case .completed, .cancelled: nil
         }
     }
 
@@ -71,6 +88,8 @@ nonisolated enum VisitStatusFilter: String, CaseIterable, Identifiable, Hashable
         }
     }
 
+    /// A cancelled visit is matched by `all` alone: it is neither planned, nor in
+    /// progress, nor completed, and folding it into any of those would misreport it.
     func matches(_ status: VisitStatus) -> Bool {
         switch self {
         case .all: true

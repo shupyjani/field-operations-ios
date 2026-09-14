@@ -3,6 +3,8 @@ import SwiftUI
 struct MoreView: View {
     @Environment(FieldOperationsStore.self) private var store
 
+    @State private var isConfirmingReset = false
+
     var body: some View {
         @Bindable var store = store
 
@@ -35,11 +37,27 @@ struct MoreView: View {
                     .tint(AjaniTheme.Palette.primary)
                     .ajaniCard()
 
+                    // Under a heading that already reads Application, the product's
+                    // own symbol and name are the whole of what the card says.
                     VStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
                         SectionHeader(title: "Application")
-                        DetailRow(label: "Name", value: AppInfo.displayName, symbolName: "app.badge")
-                        DetailRow(label: "Version", value: AppInfo.version, symbolName: "number")
-                        DetailRow(label: "Build", value: AppInfo.build, symbolName: "hammer")
+                        AppIdentityRow(name: AppInfo.displayName)
+                    }
+                    .ajaniCard()
+
+                    // Last, because restoring the round is a demonstration utility
+                    // rather than part of the application's own identity.
+                    VStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
+                        SectionHeader(
+                            title: "Demonstration round",
+                            subtitle: "Restores the original seven visits, their checklists and both preferences."
+                        )
+
+                        Button("Reset demonstration round") {
+                            isConfirmingReset = true
+                        }
+                        .buttonStyle(AjaniQuietButtonStyle())
+                        .accessibilityIdentifier(AccessibilityID.moreResetAction)
                     }
                     .ajaniCard()
                 }
@@ -48,6 +66,19 @@ struct MoreView: View {
             .background(AjaniTheme.Palette.canvas)
             .scrollBounceBehavior(.basedOnSize)
             .navigationTitle("More")
+            .confirmationDialog(
+                "Reset the demonstration round?",
+                isPresented: $isConfirmingReset,
+                titleVisibility: .visible
+            ) {
+                Button("Reset round", role: .destructive) {
+                    store.reset()
+                }
+                .accessibilityIdentifier(AccessibilityID.moreResetConfirm)
+                Button("Keep current round", role: .cancel) {}
+            } message: {
+                Text("Every status, checklist and cancellation returns to how the round started.")
+            }
         }
     }
 

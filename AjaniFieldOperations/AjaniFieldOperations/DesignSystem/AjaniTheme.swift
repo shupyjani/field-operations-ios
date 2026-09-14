@@ -82,6 +82,13 @@ extension AjaniTheme {
             dark: Color(red: 0.420, green: 0.816, blue: 0.561)
         )
 
+        /// A closed record rather than an alarm: muted, and never mistaken for
+        /// the completed green.
+        static let statusCancelled = adaptive(
+            light: Color(red: 0.482, green: 0.235, blue: 0.243),
+            dark: Color(red: 0.898, green: 0.639, blue: 0.639)
+        )
+
         private static func adaptive(light: Color, dark: Color) -> Color {
             Color(uiColor: UIColor { traits in
                 UIColor(traits.userInterfaceStyle == .dark ? dark : light)

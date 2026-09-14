@@ -14,8 +14,31 @@ enum AccessibilityID {
 
     static let visitDetailPrimaryAction = "visitDetail.primaryAction"
     static let visitDetailCompletedNotice = "visitDetail.completedNotice"
+    static let visitDetailCancelledNotice = "visitDetail.cancelledNotice"
+    static let visitDetailCancelAction = "visitDetail.cancelAction"
+    static let visitDetailReturnAction = "visitDetail.returnAction"
+    static let visitDetailTaskLock = "visitDetail.taskLock"
+    static let visitDetailCancellationReason = "visitDetail.cancellationReason"
+
+    static let cancelSheetNote = "cancelSheet.note"
+    static let cancelSheetConfirm = "cancelSheet.confirm"
+    static let cancelSheetRequirement = "cancelSheet.requirement"
+
+    static let completionConfirm = "completion.confirm"
+    static let returnConfirm = "return.confirm"
+
+    static let moreResetAction = "more.resetAction"
+    static let moreResetConfirm = "more.resetConfirm"
 
     static func visitRow(_ reference: String) -> String {
         "visitRow.\(reference)"
+    }
+
+    static func visitTask(_ title: String) -> String {
+        "visitTask.\(title)"
+    }
+
+    static func cancelReason(_ reason: CancellationReason) -> String {
+        "cancelSheet.reason.\(reason.rawValue)"
     }
 }

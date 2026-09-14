@@ -7,6 +7,7 @@ extension VisitStatus {
         case .enRoute: AjaniTheme.Palette.statusEnRoute
         case .arrived: AjaniTheme.Palette.statusArrived
         case .completed: AjaniTheme.Palette.statusCompleted
+        case .cancelled: AjaniTheme.Palette.statusCancelled
         }
     }
 }

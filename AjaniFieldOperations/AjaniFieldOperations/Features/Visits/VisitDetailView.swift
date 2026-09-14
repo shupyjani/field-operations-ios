@@ -29,6 +29,9 @@ struct VisitDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AjaniTheme.Spacing.l) {
                 headerCard(visit)
+                if let cancellation = visit.cancellation {
+                    cancellationCard(cancellation)
+                }
                 scheduleCard(visit)
                 locationCard(visit)
                 tasksCard(visit)
@@ -67,6 +70,23 @@ struct VisitDetailView: View {
             }
         }
         .ajaniCard(padding: AjaniTheme.Spacing.xl)
+    }
+
+    private func cancellationCard(_ cancellation: Cancellation) -> some View {
+        VStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
+            SectionHeader(title: "Cancellation")
+            DetailRow(
+                label: "Reason",
+                value: cancellation.reason.title,
+                symbolName: "xmark.circle"
+            )
+            .accessibilityIdentifier(AccessibilityID.visitDetailCancellationReason)
+
+            if !cancellation.note.isEmpty {
+                DetailRow(label: "Note", value: cancellation.note, symbolName: "text.alignleft")
+            }
+        }
+        .ajaniCard()
     }
 
     private func scheduleCard(_ visit: Visit) -> some View {
@@ -109,9 +129,25 @@ struct VisitDetailView: View {
                 title: "Tasks",
                 subtitle: "\(visit.completedTaskCount) of \(visit.tasks.count) done"
             )
+
+            // Stated in words rather than signalled by dimming alone, and tied to
+            // each row so it is heard when the row is reached.
+            if let lockReason = visit.taskLockReason {
+                Label(lockReason, systemImage: "lock")
+                    .font(.footnote)
+                    .foregroundStyle(AjaniTheme.Palette.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(AccessibilityID.visitDetailTaskLock)
+            }
+
             VStack(spacing: AjaniTheme.Spacing.s) {
                 ForEach(visit.tasks) { task in
-                    TaskToggleRow(task: task, visitID: visit.id)
+                    TaskToggleRow(
+                        task: task,
+                        visitID: visit.id,
+                        isEditable: visit.canEditTasks,
+                        lockReason: visit.taskLockReason
+                    )
                 }
             }
         }
@@ -141,29 +177,71 @@ struct VisitDetailView: View {
     @ViewBuilder
     private func actionBar(_ visit: Visit) -> some View {
         VStack(spacing: AjaniTheme.Spacing.s) {
-            if visit.status == .completed {
+            switch visit.status {
+            case .completed:
                 Label("Visit completed", systemImage: "checkmark.circle.fill")
                     .font(.headline)
                     .foregroundStyle(AjaniTheme.Palette.statusCompleted)
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: AjaniTheme.Layout.minimumTapTarget)
                     .accessibilityIdentifier(AccessibilityID.visitDetailCompletedNotice)
-            } else {
+
+            case .cancelled:
+                Label("Visit cancelled", systemImage: "xmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(AjaniTheme.Palette.statusCancelled)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: AjaniTheme.Layout.minimumTapTarget)
+                    .accessibilityIdentifier(AccessibilityID.visitDetailCancelledNotice)
+
+            default:
                 VisitAdvanceButton(
                     visit: visit,
                     accessibilityIdentifier: AccessibilityID.visitDetailPrimaryAction
                 )
+
+                // The one way back: a practitioner redirected before they arrive.
+                if visit.canReturnToPlanned {
+                    Button("Return to Planned") {
+                        store.requestReturnToPlanned(id: visit.id)
+                    }
+                    .buttonStyle(AjaniQuietButtonStyle())
+                    .accessibilityIdentifier(AccessibilityID.visitDetailReturnAction)
+                }
+
+                if visit.canCancel {
+                    Button("Cancel visit") {
+                        store.requestCancellation(id: visit.id)
+                    }
+                    .buttonStyle(AjaniQuietButtonStyle())
+                    .accessibilityIdentifier(AccessibilityID.visitDetailCancelAction)
+                }
             }
+
+            Text(stepNote(visit))
+                .font(.footnote)
+                .foregroundStyle(AjaniTheme.Palette.textSecondary)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
         }
         .padding(.horizontal, AjaniTheme.Spacing.l)
         .padding(.vertical, AjaniTheme.Spacing.m)
         .background(.bar)
+    }
+
+    private func stepNote(_ visit: Visit) -> String {
+        guard let step = visit.status.sequenceStep else {
+            return "This visit was cancelled and is now closed."
+        }
+        return "Step \(step) of \(VisitStatus.sequence.count) in the visit sequence."
     }
 }
 
 private struct TaskToggleRow: View {
     let task: VisitTask
     let visitID: Visit.ID
+    let isEditable: Bool
+    let lockReason: String?
 
     @Environment(FieldOperationsStore.self) private var store
 
@@ -198,11 +276,25 @@ private struct TaskToggleRow: View {
             .contentShape(RoundedRectangle(cornerRadius: AjaniTheme.Radius.inner, style: .continuous))
         }
         .buttonStyle(.plain)
+        .opacity(isEditable ? 1 : 0.6)
+        // The identifier must follow the element it names: applied before
+        // `accessibilityElement`, it lands on a container without the value.
         .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(AccessibilityID.visitTask(task.title))
         .accessibilityLabel(task.detail.map { "\(task.title). \($0)" } ?? task.title)
         .accessibilityValue(task.isComplete ? "Done" : "Not done")
-        .accessibilityHint(task.isComplete ? "Marks the task as not done" : "Marks the task as done")
+        .accessibilityHint(taskHint)
         .accessibilityAddTraits(task.isComplete ? [.isButton, .isSelected] : .isButton)
+        // Applied last so the synthesized element carries the disabled state to
+        // assistive technology, rather than only dimming the row.
+        .disabled(!isEditable)
+    }
+
+    /// Locked rows explain the restriction rather than offering an action that
+    /// would be refused.
+    private var taskHint: String {
+        if let lockReason { return lockReason }
+        return task.isComplete ? "Marks the task as not done" : "Marks the task as done"
     }
 }
 

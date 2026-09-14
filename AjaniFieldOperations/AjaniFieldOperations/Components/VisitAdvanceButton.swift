@@ -1,37 +1,24 @@
 import SwiftUI
 
-/// Moves a visit to the next stage of its journey. Renders nothing once the visit is complete,
-/// so the interface never shows an action that cannot be taken.
+/// Moves a visit to the next stage of its journey. Renders nothing once the visit
+/// is closed, so the interface never shows an action that cannot be taken.
+///
+/// The guarded decisions — one active visit, outstanding tasks, the confirmation
+/// preference — belong to the store. This only asks, and the store either applies
+/// the step or raises the question that has to be answered first.
 struct VisitAdvanceButton: View {
     let visit: Visit
     let accessibilityIdentifier: String
 
     @Environment(FieldOperationsStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isConfirmingCompletion = false
 
     var body: some View {
         if let title = visit.status.advanceActionTitle, let successor = visit.status.successor {
-            Button(title) {
-                if successor == .completed && store.confirmsVisitCompletion {
-                    isConfirmingCompletion = true
-                } else {
-                    advance()
-                }
-            }
-            .buttonStyle(AjaniPrimaryButtonStyle())
-            .accessibilityIdentifier(accessibilityIdentifier)
-            .accessibilityHint("Moves \(visit.clientName) to \(successor.title)")
-            .confirmationDialog(
-                "Complete this visit?",
-                isPresented: $isConfirmingCompletion,
-                titleVisibility: .visible
-            ) {
-                Button("Complete visit") { advance() }
-                Button("Keep in progress", role: .cancel) {}
-            } message: {
-                Text("\(visit.clientName), \(VisitFormatting.spokenWindow(from: visit.scheduledStart, to: visit.scheduledEnd))")
-            }
+            Button(title) { advance() }
+                .buttonStyle(AjaniPrimaryButtonStyle())
+                .accessibilityIdentifier(accessibilityIdentifier)
+                .accessibilityHint("Moves \(visit.clientName) to \(successor.title)")
         }
     }
 

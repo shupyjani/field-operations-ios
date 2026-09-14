@@ -55,6 +55,12 @@ struct VisitsView: View {
             .navigationDestination(for: Visit.ID.self) { visitID in
                 VisitDetailView(visitID: visitID)
             }
+            // A reset restores the round, so the search and filter narrowing it
+            // are cleared with it rather than left over the fresh schedule.
+            .onChange(of: store.resetCount) { _, _ in
+                searchText = ""
+                statusFilter = .all
+            }
         }
     }
 
