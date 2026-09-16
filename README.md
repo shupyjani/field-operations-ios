@@ -52,9 +52,10 @@ demonstration round.
 
 ## Engineering highlights
 
-- **Validated state transitions.** A visit advances Planned → En route → Arrived → Completed.
-  The rules live in the domain layer, so a stage cannot be skipped or reversed, and the
-  interface only ever offers the action that is actually available.
+- **Validated state transitions.** A visit normally advances Planned → En route → Arrived →
+  Completed. The rules live in the domain layer: stages cannot be skipped, and the only
+  reversal permitted is the explicit, confirmed En route → Planned return. The interface only
+  ever offers the action that is actually available.
 - **Workflow protections.** One visit can be in progress at a time, and starting a second is
   refused rather than silently allowed. Checklists are read-only until the practitioner
   arrives. Completing a visit with tasks still outstanding asks first and says how many.
@@ -149,9 +150,9 @@ xcodebuild -project AjaniFieldOperations.xcodeproj \
 
 The application runs against generated demonstration records held in memory for the duration
 of a launch, so the workflows above can be built and exercised end to end. Every name, address
-and note is fictional. The Assistant's remote endpoint is read from a configuration value
-rather than compiled in, and holds no credential; with none configured, or when it cannot be
-reached, the built-in answers stand.
+and note is fictional. The Assistant's remote endpoint is read from bundled configuration
+rather than hard-coded in Swift, and holds no credential; with none configured, or when it
+cannot be reached, the built-in answers stand.
 
 ## Planned direction
 
