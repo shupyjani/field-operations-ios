@@ -1,6 +1,6 @@
 import Foundation
 
-enum VisitFormatting {
+nonisolated enum VisitFormatting {
     static func time(_ date: Date) -> String {
         date.formatted(date: .omitted, time: .shortened)
     }

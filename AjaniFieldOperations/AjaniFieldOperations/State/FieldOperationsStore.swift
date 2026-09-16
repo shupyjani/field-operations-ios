@@ -54,6 +54,24 @@ final class FieldOperationsStore {
     /// Bumped by every reset, so the interface can react to one having happened.
     private(set) var resetCount = 0
 
+    /// The order visits were completed in during this session, oldest first.
+    ///
+    /// Schedule order cannot prove completion order — a practitioner may work out
+    /// of sequence — so "which visit did I just finish?" needs the events
+    /// themselves. Holds identifiers only: the round has no clock, and an order is
+    /// all the question asks about. The visits that begin the round already
+    /// Completed are absent on purpose, because inventing a sequence for them
+    /// would be fabricating history.
+    private(set) var completionOrder: [Visit.ID] = []
+
+    /// The visits completed during this session, oldest completion first.
+    var sessionCompletions: [Visit] {
+        completionOrder.compactMap { id in
+            guard let visit = visit(id: id), visit.status == .completed else { return nil }
+            return visit
+        }
+    }
+
     init(worker: Worker, shift: Shift, visits: [Visit], referenceDate: Date, calendar: Calendar = .current) {
         self.worker = worker
         self.shift = shift
@@ -122,6 +140,20 @@ final class FieldOperationsStore {
         visits.first { $0.id == id }
     }
 
+    /// The round as the assistant is allowed to read it: a copy, taken now, with
+    /// no way back to this store.
+    var assistantRound: AssistantRound {
+        AssistantRound(
+            visits: visits,
+            workerFirstName: worker.firstName,
+            shiftWindow: VisitFormatting.window(from: shift.start, to: shift.end),
+            round: shift.region,
+            completionOrder: completionOrder,
+            showsCompletedVisitsOnToday: showsCompletedVisitsOnToday,
+            confirmsVisitCompletion: confirmsVisitCompletion
+        )
+    }
+
     func results(searchText: String, statusFilter: VisitStatusFilter) -> [Visit] {
         VisitSearch.results(in: visits, searchText: searchText, statusFilter: statusFilter)
     }
@@ -146,6 +178,14 @@ final class FieldOperationsStore {
         }
 
         visits[index].status = status
+
+        // Only a successful transition to Completed is an event. A rejected or
+        // repeated attempt returned above and records nothing, and cancelling is
+        // not completing.
+        if status == .completed && !completionOrder.contains(id) {
+            completionOrder.append(id)
+        }
+
         return true
     }
 
@@ -295,6 +335,7 @@ final class FieldOperationsStore {
         blockedTransition = nil
         pendingReturnID = nil
         pendingCancelID = nil
+        completionOrder = []
         resetCount += 1
     }
 }

@@ -8,10 +8,13 @@ move that visit forward.
 
 ## Screens
 
+Native iPhone captures using demonstration data.
+
 |  |  |
 |:---:|:---:|
-| <img src="docs/images/ajani-mobile-today-light.png" alt="Today screen showing shift progress and the active visit" width="300"><br>**Today** — shift overview, progress through the day, and the active visit with its next action | <img src="docs/images/ajani-mobile-visits-dark.png" alt="Visits screen showing the searchable schedule in dark appearance" width="300"><br>**Visits** — the searchable, filterable schedule with operational statuses at a glance |
-| <img src="docs/images/ajani-mobile-visit-detail-light.png" alt="Visit detail screen showing the task checklist and operational notes" width="300"><br>**Visit detail** — task completion tracked against the visit, alongside operational notes | <img src="docs/images/ajani-mobile-more-dark.png" alt="More screen showing practitioner profile and preferences in dark appearance" width="300"><br>**More** — practitioner profile, working preferences, and the full dark appearance |
+| <img src="docs/images/ajani-mobile-today-light.png" alt="Today: Shift overview, progress and active visit" width="300"><br>**Today** — Shift overview, progress and active visit | <img src="docs/images/ajani-mobile-visits-dark.png" alt="Visits: Searchable schedule and operational statuses" width="300"><br>**Visits** — Searchable schedule and operational statuses |
+| <img src="docs/images/ajani-mobile-visit-detail-light.png" alt="Visit detail: Task completion and operational notes" width="300"><br>**Visit detail** — Task completion and operational notes | <img src="docs/images/ajani-mobile-ajani-assistant-light.png" alt="Ajani Assistant: Questions answered from recorded tasks; shown using built-in guidance" width="300"><br>**Ajani Assistant** — Questions answered from recorded tasks; shown using built-in guidance |
+| <img src="docs/images/ajani-mobile-visit-cancel-dark.png" alt="Cancel visit: Reason selection and an operational note" width="300"><br>**Cancel visit** — Reason selection and an operational note | <img src="docs/images/ajani-mobile-more-dark.png" alt="More: Preferences, Assistant access and application identity" width="300"><br>**More** — Preferences, Assistant access and application identity |
 
 ## What it does
 

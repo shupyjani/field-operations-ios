@@ -36,6 +36,9 @@ final class VisitWorkflowUITests: XCTestCase {
 
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
+        // Keeps the app on built-in guidance, so no automated run ever makes a
+        // real provider request.
+        app.launchArguments += ["ajani-assistant-offline"]
         app.launch()
         return app
     }

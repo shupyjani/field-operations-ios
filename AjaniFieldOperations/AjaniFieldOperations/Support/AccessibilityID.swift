@@ -29,6 +29,22 @@ enum AccessibilityID {
 
     static let moreResetAction = "more.resetAction"
     static let moreResetConfirm = "more.resetConfirm"
+    static let moreAssistantAction = "more.assistantAction"
+
+    static let assistantScreen = "assistant.screen"
+    static let assistantWelcome = "assistant.welcome"
+    static let assistantInput = "assistant.input"
+    static let assistantSend = "assistant.send"
+    static let assistantStatus = "assistant.status"
+    static let assistantReply = "assistant.reply"
+    static let assistantUserMessage = "assistant.userMessage"
+    static let assistantReplySource = "assistant.replySource"
+    static let assistantClearAction = "assistant.clearAction"
+    static let assistantClearConfirm = "assistant.clearConfirm"
+
+    static func assistantSuggestion(_ question: String) -> String {
+        "assistant.suggestion.\(question)"
+    }
 
     static func visitRow(_ reference: String) -> String {
         "visitRow.\(reference)"
