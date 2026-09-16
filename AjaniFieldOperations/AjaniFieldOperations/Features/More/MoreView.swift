@@ -1,7 +1,13 @@
 import SwiftUI
 
+/// Where More can drill down to.
+enum MoreDestination: Hashable {
+    case assistant
+}
+
 struct MoreView: View {
     @Environment(FieldOperationsStore.self) private var store
+    @Environment(AssistantConversation.self) private var conversation
 
     @State private var isConfirmingReset = false
 
@@ -37,6 +43,20 @@ struct MoreView: View {
                     .tint(AjaniTheme.Palette.primary)
                     .ajaniCard()
 
+                    VStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
+                        SectionHeader(title: AssistantCopy.title)
+
+                        Text("Ask about the round, or how a control works.")
+                            .font(.subheadline)
+                            .foregroundStyle(AjaniTheme.Palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        NavigationLink("Open assistant", value: MoreDestination.assistant)
+                            .buttonStyle(AjaniQuietButtonStyle())
+                            .accessibilityIdentifier(AccessibilityID.moreAssistantAction)
+                    }
+                    .ajaniCard()
+
                     // Under a heading that already reads Application, the product's
                     // own symbol and name are the whole of what the card says.
                     VStack(alignment: .leading, spacing: AjaniTheme.Spacing.m) {
@@ -66,6 +86,11 @@ struct MoreView: View {
             .background(AjaniTheme.Palette.canvas)
             .scrollBounceBehavior(.basedOnSize)
             .navigationTitle("More")
+            .navigationDestination(for: MoreDestination.self) { destination in
+                switch destination {
+                case .assistant: AssistantScreen()
+                }
+            }
             .confirmationDialog(
                 "Reset the demonstration round?",
                 isPresented: $isConfirmingReset,
@@ -73,6 +98,10 @@ struct MoreView: View {
             ) {
                 Button("Reset round", role: .destructive) {
                     store.reset()
+                    // The conversation described the round that has just been
+                    // replaced, so it goes with it — and anything in flight is
+                    // invalidated rather than arriving into a cleared screen.
+                    conversation.clear()
                 }
                 .accessibilityIdentifier(AccessibilityID.moreResetConfirm)
                 Button("Keep current round", role: .cancel) {}

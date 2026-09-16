@@ -12,6 +12,9 @@ final class FieldOperationsLaunchTests: XCTestCase {
     @MainActor
     func testLaunchReachesTheTodayDashboard() throws {
         let app = XCUIApplication()
+        // Keeps the app on built-in guidance, so no automated run ever makes a
+        // real provider request.
+        app.launchArguments += ["ajani-assistant-offline"]
         app.launch()
 
         XCTAssertTrue(app.scrollViews["today.screen"].waitForExistence(timeout: 20))

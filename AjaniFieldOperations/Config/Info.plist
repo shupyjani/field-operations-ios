@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		The assistant endpoint this build talks to.
+
+		Public configuration, not a credential: the provider key is held by the
+		server behind this URL and never reaches the app. Remove this key and the
+		assistant answers from its built-in guidance instead.
+	-->
+	<key>AjaniAssistantEndpoint</key>
+	<string>https://www.ajanihealthcare.com/.netlify/functions/ajani-assistant</string>
+</dict>
+</plist>
