@@ -49,13 +49,14 @@ struct ShiftSummaryCard: View {
                         .foregroundStyle(AjaniTheme.Palette.primary)
                 }
                 AjaniProgressBar(fraction: progress.fraction)
-                Text("\(progress.completed) of \(progress.total) visits complete · \(progress.remaining) remaining")
+                Text(progress.summary)
                     .font(.footnote)
                     .foregroundStyle(AjaniTheme.Palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Shift progress")
-            .accessibilityValue("\(progress.completed) of \(progress.total) visits complete, \(progress.remaining) remaining")
+            .accessibilityValue(progress.phrases.joined(separator: ", "))
         }
         .ajaniCard(padding: AjaniTheme.Spacing.xl)
     }

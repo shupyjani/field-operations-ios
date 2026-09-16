@@ -81,7 +81,7 @@ struct FieldOperationsStoreTests {
         let taskOne = ShiftFixtures.task("Prompt medication")
         let taskTwo = ShiftFixtures.task("Prepare lunch")
         let store = ShiftFixtures.store(visits: [
-            ShiftFixtures.visit(reference: "A", start: (8, 0), tasks: [taskOne, taskTwo])
+            ShiftFixtures.visit(reference: "A", start: (8, 0), status: .arrived, tasks: [taskOne, taskTwo])
         ])
         let visitID = try #require(store.visits.first).id
 
@@ -99,7 +99,7 @@ struct FieldOperationsStoreTests {
     @Test("Toggling an unknown task changes nothing")
     func ignoresUnknownTask() throws {
         let store = ShiftFixtures.store(visits: [
-            ShiftFixtures.visit(reference: "A", start: (8, 0), tasks: [ShiftFixtures.task("Only task")])
+            ShiftFixtures.visit(reference: "A", start: (8, 0), status: .arrived, tasks: [ShiftFixtures.task("Only task")])
         ])
         let visitID = try #require(store.visits.first).id
 
@@ -203,7 +203,9 @@ struct FieldOperationsStoreTests {
 
         #expect(store.visits.count == 7)
         #expect(store.progress.completed == 2)
-        #expect(store.upNextVisit?.reference == "AV-1044")
+        // Priya Raman is already on site, so she is the visit in hand.
+        #expect(store.upNextVisit?.reference == "AV-1043")
+        #expect(store.upNextVisit?.clientName == "Priya Raman")
         #expect(store.greeting == "Good morning")
 
         for visit in store.visits {

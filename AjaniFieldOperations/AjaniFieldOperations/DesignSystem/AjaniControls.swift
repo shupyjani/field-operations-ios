@@ -2,16 +2,45 @@ import SwiftUI
 
 struct AjaniPrimaryButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// An unavailable action is muted rather than merely faded, so the difference
+    /// between "ready" and "not yet" is legible without relying on opacity alone.
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
-            .foregroundStyle(AjaniTheme.Palette.surface)
+            .foregroundStyle(isEnabled ? AjaniTheme.Palette.surface : AjaniTheme.Palette.textSecondary)
             .frame(maxWidth: .infinity)
             .frame(minHeight: AjaniTheme.Layout.minimumTapTarget)
             .background(
                 RoundedRectangle(cornerRadius: AjaniTheme.Radius.inner, style: .continuous)
-                    .fill(AjaniTheme.Palette.primary)
+                    .fill(isEnabled ? AjaniTheme.Palette.primary : AjaniTheme.Palette.surfaceMuted)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AjaniTheme.Radius.inner, style: .continuous)
+                    .strokeBorder(AjaniTheme.Palette.separator, lineWidth: isEnabled ? 0 : 1)
+            )
+            .opacity(configuration.isPressed && isEnabled ? 0.85 : 1)
+            .scaleEffect(reduceMotion || !configuration.isPressed || !isEnabled ? 1 : 0.98)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+/// A secondary action beside a primary one: cancelling a visit, or sending it
+/// back to Planned. Carries the same tap target and Reduced Motion handling as
+/// the primary button, without competing with it.
+struct AjaniQuietButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .foregroundStyle(AjaniTheme.Palette.primary)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: AjaniTheme.Layout.minimumTapTarget)
+            .background(
+                RoundedRectangle(cornerRadius: AjaniTheme.Radius.inner, style: .continuous)
+                    .fill(AjaniTheme.Palette.primarySoft)
             )
             .opacity(configuration.isPressed ? 0.85 : 1)
             .scaleEffect(reduceMotion || !configuration.isPressed ? 1 : 0.98)
@@ -37,6 +66,38 @@ struct SectionHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// The application's own symbol beside its name, on one row.
+///
+/// This replaces a "Name" label paired with the value. Under a heading that
+/// already reads Application the label named nothing the reader could not see,
+/// so the row is now the symbol and the name themselves.
+///
+/// The artwork is cropped to its plate in the asset catalogue, so `symbolSize`
+/// is the badge a reader sees rather than a canvas with padding inside it. It
+/// scales with Dynamic Type, and the name wraps instead of truncating.
+struct AppIdentityRow: View {
+    let name: String
+
+    @ScaledMetric(relativeTo: .body) private var symbolSize: CGFloat = 36
+
+    var body: some View {
+        HStack(alignment: .center, spacing: AjaniTheme.Spacing.m) {
+            Image("AjaniSymbol")
+                .resizable()
+                .scaledToFit()
+                .frame(width: symbolSize, height: symbolSize)
+                .accessibilityHidden(true)
+
+            Text(name)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(AjaniTheme.Palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 

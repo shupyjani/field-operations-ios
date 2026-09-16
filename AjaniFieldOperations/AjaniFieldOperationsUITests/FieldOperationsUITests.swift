@@ -10,6 +10,7 @@ final class FieldOperationsUITests: XCTestCase {
         static let visitsEmptyState = "visits.emptyState"
         static let visitDetailPrimaryAction = "visitDetail.primaryAction"
         static let visitDetailCompletedNotice = "visitDetail.completedNotice"
+        static let completionConfirm = "completion.confirm"
 
         static func visitRow(_ reference: String) -> String { "visitRow.\(reference)" }
     }
@@ -101,10 +102,10 @@ final class FieldOperationsUITests: XCTestCase {
         // Waits on a note, which only the detail screen shows. The client name would
         // also match the list row behind it, and so can pass mid-transition.
         XCTAssertTrue(
-            app.staticTexts["Prefers the kitchen door rather than the front entrance."]
+            app.staticTexts["Daughter usually calls around nine; happy to be interrupted."]
                 .waitForExistence(timeout: timeout)
         )
-        XCTAssertTrue(app.staticTexts["Marguerite Okonjo"].exists)
+        XCTAssertTrue(app.staticTexts["Desmond Achebe"].exists)
         // A finished visit offers no further action.
         XCTAssertTrue(app.staticTexts[ID.visitDetailCompletedNotice].exists)
         XCTAssertFalse(app.buttons[ID.visitDetailPrimaryAction].exists)
@@ -112,13 +113,17 @@ final class FieldOperationsUITests: XCTestCase {
 
     func testCompletingAVisitStatusJourney() throws {
         let app = launchApp()
+        // The round opens with a visit already on site, and only one visit may be
+        // active, so that one is closed before another journey can begin.
+        releaseTheActiveVisit(in: app)
+
         openVisits(in: app)
 
         let plannedFilter = app.buttons["Planned"]
         XCTAssertTrue(plannedFilter.waitForExistence(timeout: timeout))
         plannedFilter.tap()
 
-        let row = app.buttons[ID.visitRow("AV-1045")]
+        let row = app.buttons[ID.visitRow("AV-1044")]
         XCTAssertTrue(row.waitForExistence(timeout: timeout))
         row.tap()
 
@@ -133,6 +138,9 @@ final class FieldOperationsUITests: XCTestCase {
         XCTAssertTrue(waitForLabel("Complete visit", on: action))
 
         tap(action, in: app)
+        // Every task is still outstanding, so completing asks before it closes.
+        confirmOutstandingCompletion(in: app)
+
         XCTAssertTrue(app.staticTexts[ID.visitDetailCompletedNotice].waitForExistence(timeout: timeout))
         XCTAssertFalse(action.exists)
     }
@@ -146,6 +154,7 @@ final class FieldOperationsUITests: XCTestCase {
         XCTAssertEqual(action.label, "Complete visit")
 
         tap(action, in: app)
+        confirmOutstandingCompletion(in: app)
 
         // Once complete, the card moves on to the next planned visit.
         XCTAssertTrue(waitForLabel("Start travelling", on: app.buttons[ID.upNextAction]))
@@ -153,7 +162,7 @@ final class FieldOperationsUITests: XCTestCase {
         let upNext = app.buttons[ID.upNextVisit]
         XCTAssertTrue(upNext.waitForExistence(timeout: timeout))
         XCTAssertTrue(
-            upNext.label.contains("Ivor Bassey"),
+            upNext.label.contains("Ivor Bankole"),
             "Up next should advance to the next planned visit, but showed: \(upNext.label)"
         )
     }
@@ -162,14 +171,14 @@ final class FieldOperationsUITests: XCTestCase {
         let app = launchApp()
         openVisits(in: app)
 
-        search(for: "Noor", in: app)
+        search(for: "Halina", in: app)
 
         // The result summary is the only signal that filtering has actually been
         // applied: the matching row is already on screen before the search runs,
         // so waiting on it would prove nothing and leave the negative assertion
         // below racing the filter.
         XCTAssertTrue(app.staticTexts["Showing 1 of 7 visits"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons[ID.visitRow("AV-1046")].exists)
+        XCTAssertTrue(app.buttons[ID.visitRow("AV-1045")].exists)
         XCTAssertFalse(app.buttons[ID.visitRow("AV-1042")].exists)
     }
 
@@ -184,6 +193,26 @@ final class FieldOperationsUITests: XCTestCase {
     }
 
     // MARK: - Helpers
+
+    /// Answers the outstanding-task question that stands between an arrived visit
+    /// with unticked work and being closed.
+    private func confirmOutstandingCompletion(in app: XCUIApplication) {
+        let confirm = app.alerts.buttons[ID.completionConfirm].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: timeout), "Completing with tasks outstanding should ask first")
+        confirm.tap()
+    }
+
+    /// Closes the visit the round opens on, so another may be started.
+    private func releaseTheActiveVisit(in app: XCUIApplication) {
+        let action = app.buttons[ID.upNextAction]
+        XCTAssertTrue(action.waitForExistence(timeout: timeout))
+        XCTAssertEqual(action.label, "Complete visit")
+
+        tap(action, in: app)
+        confirmOutstandingCompletion(in: app)
+
+        XCTAssertTrue(waitForLabel("Start travelling", on: app.buttons[ID.upNextAction]))
+    }
 
     private func search(for query: String, in app: XCUIApplication) {
         let searchField = app.searchFields.firstMatch

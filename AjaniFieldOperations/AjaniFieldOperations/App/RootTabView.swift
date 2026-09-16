@@ -14,6 +14,9 @@ struct RootTabView: View {
             }
         }
         .tint(AjaniTheme.Palette.primary)
+        // Attached once, so a question raised on Today and the same question
+        // raised inside a visit are presented by one owner rather than two.
+        .visitWorkflowPrompts()
     }
 }
 
