@@ -16,7 +16,7 @@ Native iPhone captures using demonstration data.
 |  |  |
 |:---:|:---:|
 | <img src="docs/images/ajani-mobile-today-light.png" alt="Today: Shift overview, progress and active visit" width="300"><br>**Today** — Shift overview, progress and active visit | <img src="docs/images/ajani-mobile-visits-dark.png" alt="Visits: Searchable schedule and operational statuses" width="300"><br>**Visits** — Searchable schedule and operational statuses |
-| <img src="docs/images/ajani-mobile-visit-detail-light.png" alt="Visit detail: Task completion and operational notes" width="300"><br>**Visit detail** — Task completion and operational notes | <img src="docs/images/ajani-mobile-ajani-assistant-light.png" alt="Ajani Assistant: Questions answered from recorded tasks; shown using built-in guidance" width="300"><br>**Ajani Assistant** — Questions answered from recorded tasks; shown using built-in guidance |
+| <img src="docs/images/ajani-mobile-visit-detail-light.png" alt="Visit detail: Task completion and operational notes" width="300"><br>**Visit detail** — Task completion and operational notes | <img src="docs/images/ajani-mobile-ajani-assistant-light.png" alt="Ajani Assistant: Questions answered from the recorded round using built-in guidance" width="300"><br>**Ajani Assistant** — Questions answered from the recorded round using built-in guidance |
 | <img src="docs/images/ajani-mobile-visit-cancel-dark.png" alt="Cancel visit: Reason selection and an operational note" width="300"><br>**Cancel visit** — Reason selection and an operational note | <img src="docs/images/ajani-mobile-more-dark.png" alt="More: Preferences, Assistant access and application identity" width="300"><br>**More** — Preferences, Assistant access and application identity |
 
 ## What it does
@@ -75,8 +75,9 @@ demonstration round.
   people who ask it to.
 - **Accessibility identifiers.** A single source of truth shared by the app and the UI tests,
   alongside VoiceOver labels and values on interactive elements and comfortable touch targets.
-- **Domain separation.** The domain layer is plain Swift with no SwiftUI import and no clock
-  of its own — dates and calendars are passed in.
+- **Domain separation.** The core visit and scheduling rules are plain Swift with no SwiftUI
+  dependency, and take their date and calendar context as parameters, so the tests stay
+  deterministic.
 - **A reader that cannot write.** The Assistant answers from a value copy of the round and
   holds no mutating reference to the shared state, so it can describe the shift but never
   change it. Requests for clinical advice, for the app's own configuration, or to perform an
@@ -122,7 +123,7 @@ a stub rather than a network.
 
 ## Building and testing
 
-An iPhone application targeting iOS 18.0 and later. Requires Xcode 26.6 or later.
+An iPhone application targeting iOS 18.0 and later. Built and tested with Xcode 26.6.
 
 ```bash
 open AjaniFieldOperations/AjaniFieldOperations.xcodeproj
